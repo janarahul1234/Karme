@@ -3,18 +3,13 @@ import { AvailableTransactionTypes } from "../constants.js";
 
 const transactionSchema = mongoose.Schema(
   {
-    title: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    category: {
-      type: String,
-      required: true,
-    },
     type: {
       type: String,
       enum: AvailableTransactionTypes,
+      required: true,
+    },
+    category: {
+      type: String,
       required: true,
     },
     amount: {
@@ -24,6 +19,10 @@ const transactionSchema = mongoose.Schema(
     date: {
       type: Date,
       default: Date.now,
+    },
+    description: {
+      type: String,
+      trim: true,
     },
     goalId: {
       type: mongoose.Schema.Types.ObjectId,

@@ -17,6 +17,10 @@ const goalSchema = mongoose.Schema(
       enum: AvailableGoalCategories,
       required: true,
     },
+    targetDate: {
+      type: Date,
+      required: true,
+    },
     targetAmount: {
       type: Number,
       required: true,
@@ -25,9 +29,9 @@ const goalSchema = mongoose.Schema(
       type: Number,
       default: 0,
     },
-    targetDate: {
-      type: Date,
-      required: true,
+    progress: {
+      type: Number,
+      default: 0,
     },
     status: {
       type: String,
