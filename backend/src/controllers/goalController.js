@@ -31,7 +31,7 @@ export const getGoals = asyncHandler(async (req, res) => {
  * @route   GET /api/goals/:id
  * @access  protected
  */
-export const getGoal = asyncHandler(async (req, res) => {
+export const getGoalById = asyncHandler(async (req, res) => {
   const goal = await Goal.findOne({ _id: req.params.id, userId: req.user._id });
 
   if (!goal) {
@@ -61,48 +61,6 @@ export const createGoal = asyncHandler(async (req, res) => {
   });
 
   res.status(201).json(new ApiResponse(201, goal, "Goal added successfully."));
-});
-
-/**
- * @desc    Add savings
- * @route   POST /api/goals/:id/savings
- * @access  protected
- */
-export const addSavings = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const { amount } = req.body;
-
-  const goal = await Goal.findOne({ _id: id, userId: req.user._id });
-  if (!goal) {
-    throw new ApiError(404, "Goal not found.");
-  }
-
-  if (goal.status === GoalStatus.COMPLETED) {
-    throw new ApiError(400, "Goal is already completed.");
-  }
-
-  const remaining = goal.targetAmount - goal.savedAmount;
-  const appliedAmount = Math.min(amount, remaining);
-
-  goal.savedAmount += amount;
-  if (goal.savedAmount >= goal.targetAmount) {
-    goal.savedAmount = goal.targetAmount;
-    goal.status = GoalStatus.COMPLETED;
-  }
-
-  await goal.save();
-  await Transaction.create({
-    title: `Goal: ${goal.name}`,
-    category: goal.category,
-    type: TransactionTypes.SAVING,
-    amount: appliedAmount,
-    goalId: id,
-    userId: req.user._id,
-  });
-
-  res
-    .status(200)
-    .json(new ApiResponse(200, goal, "Savings added successfully."));
 });
 
 /**
@@ -153,4 +111,46 @@ export const deleteGoal = asyncHandler(async (req, res) => {
     .json(
       new ApiResponse(200, goal, "Goal and transactions deleted successfully.")
     );
+});
+
+/**
+ * @desc    Add transaction
+ * @route   POST /api/goals/:id/transactions
+ * @access  protected
+ */
+export const addTransaction = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { amount } = req.body;
+
+  const goal = await Goal.findOne({ _id: id, userId: req.user._id });
+  if (!goal) {
+    throw new ApiError(404, "Goal not found.");
+  }
+
+  if (goal.status === GoalStatus.COMPLETED) {
+    throw new ApiError(400, "Goal is already completed.");
+  }
+
+  const remaining = goal.targetAmount - goal.savedAmount;
+  const appliedAmount = Math.min(amount, remaining);
+
+  goal.savedAmount += amount;
+  if (goal.savedAmount >= goal.targetAmount) {
+    goal.savedAmount = goal.targetAmount;
+    goal.status = GoalStatus.COMPLETED;
+  }
+
+  await goal.save();
+  await Transaction.create({
+    title: `Goal: ${goal.name}`,
+    category: goal.category,
+    type: TransactionTypes.SAVING,
+    amount: appliedAmount,
+    goalId: id,
+    userId: req.user._id,
+  });
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, goal, "Savings added successfully."));
 });

@@ -5,7 +5,7 @@ import {
   AvailableGoalStatus,
 } from "../constants.js";
 
-export const getGoalValidator = () => {
+export const queryGoalsValidator = () => {
   return [
     query("search")
       .optional()
@@ -44,6 +44,15 @@ export const createGoalValidator = () => {
       .withMessage(
         `Category must be one of: ${AvailableGoalCategories.join(", ")}.`
       ),
+    body("targetDate")
+      .isISO8601()
+      .withMessage("Target date must be a valid date.")
+      .custom((value) => {
+        const inputTargetDate = new Date(value);
+        const now = new Date();
+        return inputTargetDate.getTime() > now.getTime();
+      })
+      .withMessage("Target date must be in the future."),
     body("targetAmount")
       .isNumeric()
       .withMessage("Target amount must be a number.")
@@ -53,34 +62,9 @@ export const createGoalValidator = () => {
       .optional()
       .isNumeric()
       .withMessage("Target saved amount must be a number.")
-      .custom((value) => {
-        if (value < 0) {
-          throw new Error(
-            "Target saved amount must be equal or greater than 0."
-          );
-        }
-        return true;
-      }),
-    body("targetDate")
-      .optional()
-      .isISO8601()
-      .withMessage("Target date must be a valid date.")
-      .custom((value) => {
-        const targetDate = new Date(value);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const minDate = new Date(today);
-        minDate.setDate(minDate.getDate() + 3);
-
-        if (targetDate < minDate) {
-          throw new Error("Target date must be at least 3 days in the future.");
-        }
-        return true;
-      }),
-    body("imageUrl")
-      .optional()
-      .isURL()
-      .withMessage("Image must be a valid URL."),
+      .custom((value) => value >= 0)
+      .withMessage("Target saved amount must be equal or greater than 0."),
+    body("imageUrl").isURL().withMessage("Image must be a valid URL."),
   ];
 };
 
@@ -98,6 +82,16 @@ export const updateGoalValidator = () => {
       .withMessage(
         `Category must be one of: ${AvailableGoalCategories.join(", ")}.`
       ),
+    body("targetDate")
+      .optional()
+      .isISO8601()
+      .withMessage("Target date must be a valid date.")
+      .custom((value) => {
+        const inputTargetDate = new Date(value);
+        const now = new Date();
+        return inputTargetDate.getTime() > now.getTime();
+      })
+      .withMessage("Target date must be in the future."),
     body("targetAmount")
       .optional()
       .isNumeric()
@@ -106,18 +100,8 @@ export const updateGoalValidator = () => {
       .optional()
       .isNumeric()
       .withMessage("Target saved amount must be a number.")
-      .custom((value, { req }) => {
-        if (value < 0) {
-          throw new Error(
-            "Target saved amount must be equal or greater than 0."
-          );
-        }
-        return true;
-      }),
-    body("targetDate")
-      .optional()
-      .isISO8601()
-      .withMessage("Target date must be a valid date."),
+      .custom((value) => value >= 0)
+      .withMessage("Target saved amount must be equal or greater than 0."),
     body("imageUrl")
       .optional()
       .isURL()
@@ -125,7 +109,7 @@ export const updateGoalValidator = () => {
   ];
 };
 
-export const addSavingsValidator = () => {
+export const addTransactionValidator = () => {
   return [
     param("id").isMongoId().withMessage("Invalid goal ID."),
     body("amount")

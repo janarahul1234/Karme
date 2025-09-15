@@ -17,6 +17,7 @@ import requiredAuth from "../middlewares/authMiddleware.js";
 const router = Router();
 
 router.use(requiredAuth());
+
 router
   .route("/")
   .get(queryTransactionValiator(), validate, getTransactions)

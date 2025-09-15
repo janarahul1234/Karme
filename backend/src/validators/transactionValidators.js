@@ -57,12 +57,13 @@ export const queryTransactionValiator = () => {
 
 export const createTransactionValidator = () => {
   return [
-    body("title")
-      .trim()
-      .notEmpty()
-      .withMessage("Title is required.")
-      .isLength({ min: 3 })
-      .withMessage("Title must be at lease 3 characters."),
+    body("type")
+      .isIn(AvailableTransactionTypesExcerptSaving)
+      .withMessage(
+        `Type must be one of: ${AvailableTransactionTypesExcerptSaving.join(
+          ", "
+        )}.`
+      ),
     body("category")
       .notEmpty()
       .withMessage("Category is required.")
@@ -89,13 +90,6 @@ export const createTransactionValidator = () => {
         }
         return true;
       }),
-    body("type")
-      .isIn(AvailableTransactionTypesExcerptSaving)
-      .withMessage(
-        `Type must be one of: ${AvailableTransactionTypesExcerptSaving.join(
-          ", "
-        )}.`
-      ),
     body("amount")
       .isNumeric()
       .withMessage("Amount must be a number.")
@@ -109,17 +103,26 @@ export const createTransactionValidator = () => {
         const now = new Date();
         return inputDate.getTime() <= now.getTime();
       })
-      .withMessage("Date must be in the past or present."),
+      .withMessage("Date must be in the past or today."),
+    body("description")
+      .optional()
+      .trim()
+      .isLength({ min: 3 })
+      .withMessage("transaction description must be at lease 3 characters."),
   ];
 };
 
 export const updateTransactionValidator = () => {
   return [
     param("id").isMongoId().withMessage("Invalid transaction ID."),
-    body("title")
+    body("type")
       .optional()
-      .isLength({ min: 3 })
-      .withMessage("Title must be at lease 3 characters."),
+      .isIn(AvailableTransactionTypesExcerptSaving)
+      .withMessage(
+        `Type must be one of: ${AvailableTransactionTypesExcerptSaving.join(
+          ", "
+        )}.`
+      ),
     body("category")
       .optional()
       .custom((value, { req }) => {
@@ -145,14 +148,6 @@ export const updateTransactionValidator = () => {
         }
         return true;
       }),
-    body("type")
-      .optional()
-      .isIn(AvailableTransactionTypesExcerptSaving)
-      .withMessage(
-        `Type must be one of: ${AvailableTransactionTypesExcerptSaving.join(
-          ", "
-        )}.`
-      ),
     body("amount")
       .optional()
       .isNumeric()
@@ -169,5 +164,10 @@ export const updateTransactionValidator = () => {
         return inputDate.getTime() <= now.getTime();
       })
       .withMessage("Date must be in the past or present."),
+    body("description")
+      .optional()
+      .trim()
+      .isLength({ min: 3 })
+      .withMessage("transaction description must be at lease 3 characters."),
   ];
 };
