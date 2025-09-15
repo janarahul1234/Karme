@@ -24,6 +24,7 @@ export const AvailableLoginTypes = Object.values(LoginTypes);
  *   TRAVEL: "travel",
  *   EDUCATION: "education",
  *   FASHION: "fashion",
+ *   ENTERTAINMENT: "entertainment",
  *   EVENT: "event",
  *   VEHICLE: "vehicle",
  *   OTHER: "other"
@@ -34,6 +35,7 @@ export const GoalCategories = {
   TRAVEL: "travel",
   EDUCATION: "education",
   FASHION: "fashion",
+  ENTERTAINMENT: "entertainment",
   EVENT: "event",
   VEHICLE: "vehicle",
   OTHER: "other",
@@ -108,12 +110,13 @@ export const ExpenseCategories = {
 export const AvailableExpenseCategories = Object.values(ExpenseCategories);
 
 /**
- * @type {{ NAME: "name", AMOUNT: "amount", TARGET_DATE: "targetDate" } as const}
+ * @type {{ NAME: "name", AMOUNT: "amount", PROGRESS: "progress", TARGET_DATE: "target-date" } as const}
  */
 export const GoalSortingTypes = {
   NAME: "name",
   AMOUNT: "amount",
-  TARGET_DATE: "targetDate",
+  PROGRESS: "progress",
+  TARGET_DATE: "target-date",
 };
 
 export const AvailableGoalSortingTypes = Object.values(GoalSortingTypes);
