@@ -18,7 +18,7 @@ export const getUsers = asyncHandler(async (req, res) => {
  * @route   GET /api/users/:id
  * @access  protected
  */
-export const getUser = asyncHandler(async (req, res) => {
+export const getUserById = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   const user = await User.findById(id).select("-password");

@@ -84,6 +84,33 @@ export const login = asyncHandler(async (req, res) => {
 });
 
 /**
+ * @desc    Get current user
+ * @route   GET /api/auth/me
+ * @access  protected
+ */
+export const me = asyncHandler(async (req, res) => {
+  res
+    .status(200)
+    .json(new ApiResponse(200, req.user, "Get current user successfully."));
+});
+
+/**
+ * @desc    Upload avatar
+ * @route   POST /api/auth/avatar
+ * @access  public
+ */
+export const uploadAvatar = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    throw new ApiError(400, "Avatar image is required.");
+  }
+
+  const imageUrl = `${req.protocol}://${req.host}/images/${req.file.filename}`;
+  res
+    .status(200)
+    .json(new ApiResponse(200, imageUrl, "Avatar uploaded successfully."));
+});
+
+/**
  * @desc    Google login
  * @route   POST /api/auth/google
  * @access  public
@@ -139,31 +166,4 @@ export const googleLogin = asyncHandler(async (req, res) => {
         "User logged in successfully."
       )
     );
-});
-
-/**
- * @desc    Get current user
- * @route   GET /api/auth/me
- * @access  protected
- */
-export const me = asyncHandler(async (req, res) => {
-  res
-    .status(200)
-    .json(new ApiResponse(200, req.user, "Get current user successfully."));
-});
-
-/**
- * @desc    Upload avatar
- * @route   POST /api/auth/avatar
- * @access  public
- */
-export const uploadAvatar = asyncHandler(async (req, res) => {
-  if (!req.file) {
-    throw new ApiError(400, "Avatar image is required.");
-  }
-
-  const imageUrl = `${req.protocol}://${req.host}/images/${req.file.filename}`;
-  res
-    .status(200)
-    .json(new ApiResponse(200, imageUrl, "Image uploaded successfully."));
 });

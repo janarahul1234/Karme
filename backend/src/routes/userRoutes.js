@@ -1,7 +1,7 @@
 import { Router } from "express";
 import {
   getUsers,
-  getUser,
+  getUserById,
   updateUser,
   deleteUser,
 } from "../controllers/userController.js";
@@ -15,7 +15,7 @@ const router = Router();
 router.get("/", requiredAuth([UserRoles.ADMIN]), getUsers);
 router
   .route("/:id")
-  .get(requiredAuth([UserRoles.ADMIN]), getUser)
+  .get(requiredAuth([UserRoles.ADMIN]), getUserById)
   .put(requiredAuth(), updateUserValidator(), validate, updateUser)
   .delete(requiredAuth([UserRoles.ADMIN]), deleteUser);
 

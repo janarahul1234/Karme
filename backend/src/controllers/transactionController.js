@@ -4,6 +4,7 @@ import ApiError from "../utils/ApiError.js";
 import { Goal } from "../models/Goal.js";
 import { Transaction } from "../models/Transaction.js";
 import { GoalStatus, TransactionTypes } from "../constants.js";
+import calculateProgress from "../utils/calculateProgress.js";
 
 /**
  * @desc    Get all transaction
@@ -55,14 +56,14 @@ export const getTransaction = asyncHandler(async (req, res) => {
  * @access  protected
  */
 export const createTransaction = asyncHandler(async (req, res) => {
-  const { title, category, type, amount, date } = req.body;
+  const { type, category, amount, date, description } = req.body;
 
   const transaction = await Transaction.create({
-    title,
-    category,
     type,
+    category,
     amount,
     date,
+    description,
     userId: req.user._id,
   });
 
@@ -78,7 +79,7 @@ export const createTransaction = asyncHandler(async (req, res) => {
  */
 export const updateTransaction = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { title, category, type, amount, date } = req.body;
+  const { type, category, amount, date, description } = req.body;
 
   const transaction = await Transaction.findOne({
     _id: id,
@@ -89,11 +90,11 @@ export const updateTransaction = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Transaction not found.");
   }
 
-  transaction.title = title ?? transaction.title;
-  transaction.category = category ?? transaction.category;
   transaction.type = type ?? transaction.type;
+  transaction.category = category ?? transaction.category;
   transaction.amount = amount ?? transaction.amount;
   transaction.date = date ?? transaction.date;
+  transaction.description = description ?? transaction.description;
   await transaction.save();
 
   res
@@ -118,6 +119,19 @@ export const deleteTransaction = asyncHandler(async (req, res) => {
 
   if (!transaction) {
     throw new ApiError(404, "Transaction not found.");
+  }
+
+  if (transaction.type === TransactionTypes.SAVING) {
+    const goal = await Goal.findById(transaction.goalId);
+
+    goal.savedAmount -= transaction.amount;
+    goal.process = calculateProgress(goal.targetAmount, goal.savedAmount);
+
+    if (goal.savedAmount < goal.targetAmount) {
+      goal.status = GoalStatus.ACTIVE;
+    }
+
+    await goal.save();
   }
 
   res

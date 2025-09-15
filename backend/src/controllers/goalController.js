@@ -4,6 +4,7 @@ import ApiError from "../utils/ApiError.js";
 import { Goal } from "../models/Goal.js";
 import { Transaction } from "../models/Transaction.js";
 import { GoalStatus, TransactionTypes } from "../constants.js";
+import calculateProgress from "../utils/calculateProgress.js";
 
 /**
  * @desc    Get all goal
@@ -47,15 +48,16 @@ export const getGoalById = asyncHandler(async (req, res) => {
  * @access  protected
  */
 export const createGoal = asyncHandler(async (req, res) => {
-  const { name, category, targetAmount, savedAmount, targetDate, imageUrl } =
+  const { name, category, targetDate, targetAmount, savedAmount, imageUrl } =
     req.body;
 
   const goal = await Goal.create({
     name,
     category,
+    targetDate,
     targetAmount,
     savedAmount,
-    targetDate,
+    process: calculateProgress(targetAmount, savedAmount),
     imageUrl,
     userId: req.user._id,
   });
@@ -70,7 +72,7 @@ export const createGoal = asyncHandler(async (req, res) => {
  */
 export const updateGoal = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { name, category, targetAmount, savedAmount, targetDate, imageUrl } =
+  const { name, category, targetDate, targetAmount, savedAmount, imageUrl } =
     req.body;
 
   const goal = await Goal.findOne({ _id: id, userId: req.user._id });
@@ -80,9 +82,10 @@ export const updateGoal = asyncHandler(async (req, res) => {
 
   goal.name = name ?? goal.name;
   goal.category = category ?? goal.category;
+  goal.targetDate = targetDate ?? goal.targetDate;
   goal.targetAmount = targetAmount ?? goal.targetAmount;
   goal.savedAmount = savedAmount ?? goal.savedAmount;
-  goal.targetDate = targetDate ?? goal.targetDate;
+  goal.process = calculateProgress(goal.targetAmount, goal.savedAmount);
   goal.imageUrl = imageUrl ?? goal.imageUrl;
   await goal.save();
 
@@ -108,13 +111,11 @@ export const deleteGoal = asyncHandler(async (req, res) => {
 
   res
     .status(200)
-    .json(
-      new ApiResponse(200, goal, "Goal and transactions deleted successfully.")
-    );
+    .json(new ApiResponse(200, goal, "Goal deleted successfully."));
 });
 
 /**
- * @desc    Add transaction
+ * @desc    Add goal transaction
  * @route   POST /api/goals/:id/transactions
  * @access  protected
  */
@@ -135,12 +136,15 @@ export const addTransaction = asyncHandler(async (req, res) => {
   const appliedAmount = Math.min(amount, remaining);
 
   goal.savedAmount += amount;
+  goal.process = calculateProgress(goal.targetAmount, goal.savedAmount);
+  
   if (goal.savedAmount >= goal.targetAmount) {
     goal.savedAmount = goal.targetAmount;
     goal.status = GoalStatus.COMPLETED;
   }
 
   await goal.save();
+
   await Transaction.create({
     title: `Goal: ${goal.name}`,
     category: goal.category,
@@ -152,5 +156,5 @@ export const addTransaction = asyncHandler(async (req, res) => {
 
   res
     .status(200)
-    .json(new ApiResponse(200, goal, "Savings added successfully."));
+    .json(new ApiResponse(200, goal, "Goal transaction added successfully."));
 });
