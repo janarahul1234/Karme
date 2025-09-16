@@ -15,13 +15,11 @@ import {
 import { Alert, AlertDescription, AlertIcon } from "@/components/ui/alert";
 
 const DeleteGoalDialog = ({ open, onOpenChange, goal = {}, onDelete }) => {
-  const { _id, name, category, targetAmount, savedAmount } = goal;
+  const { _id, name, category, targetAmount, savedAmount, progress } = goal;
 
   const handleDelete = () => {
     onDelete(_id);
   };
-
-  const progress = (savedAmount / targetAmount) * 100;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

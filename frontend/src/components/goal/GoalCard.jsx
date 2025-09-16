@@ -8,10 +8,10 @@ import {
   Trash2,
 } from "lucide-react";
 
-import { formatAmount } from "@/utils/helper";
-import useGoalStore from "@/stores/goalStore";
 import useToast from "@/hooks/useToast";
+import useGoalStore from "@/stores/goalStore";
 import { GoalStatus } from "@/constants";
+import { formatAmount } from "@/utils/helper";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,18 +22,21 @@ import GoalFormDialog from "@/components/goal/GoalFormDialog";
 import DeleteGoalDialog from "@/components/goal/DeleteGoalDialog";
 import AddSavingsDialog from "@/components/goal/AddSavingsDialog";
 
+const goalCompleted = "completed";
+
 const GoalCard = ({ goal = {} }) => {
   const {
     name,
     category,
+    targetDate,
     targetAmount,
     savedAmount,
-    targetDate,
+    progress,
     imageUrl,
     status,
   } = goal;
 
-  const { addSaving, editGoal, deleteGoal } = useGoalStore();
+  const { addGoalTransaction, editGoal, deleteGoal } = useGoalStore();
   const toast = useToast();
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -45,7 +48,7 @@ const GoalCard = ({ goal = {} }) => {
   const handleAddSavingsGoalDialog = () => setIsAddSavingsDialogOpen(true);
 
   const handleAddSaving = async ({ id, data, reset }) => {
-    await addSaving(id, data);
+    await addGoalTransaction(id, data);
     setIsAddSavingsDialogOpen(false);
     reset();
     toast.success("Saving added successfully");
@@ -61,17 +64,17 @@ const GoalCard = ({ goal = {} }) => {
   const handleDelete = async (id) => {
     await deleteGoal(id);
     setIsDeleteDialogOpen(false);
-    onDelete(id);
     toast.success("Goal deleted successfully");
   };
 
-  const progress = (savedAmount / targetAmount) * 100;
   const remaining = targetAmount - savedAmount;
 
   const oneDay = 1000 * 60 * 60 * 24;
   const daysLeft = Math.ceil(
     (new Date(targetDate).getTime() - new Date().getTime()) / oneDay
   );
+
+  const isGoalCompleted = status === goalCompleted;
 
   return (
     <>
@@ -84,17 +87,17 @@ const GoalCard = ({ goal = {} }) => {
           />
         </div>
 
-        <CardHeader className="pt-4 border-0 items-start">
+        <CardHeader className="pt-4 border-0 grow flex-nowrap items-start">
           <div>
             <CardTitle className="text-xl">{name}</CardTitle>
             <p className="text-muted-foreground text-sm capitalize">
               {category}
             </p>
           </div>
-          {/* <StatusBadge status={status} /> */}
+          <StatusBadge status={status} />
         </CardHeader>
 
-        <CardContent className="space-y-4">
+        <CardContent className="grow-0 space-y-4">
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Progress</span>
@@ -125,6 +128,7 @@ const GoalCard = ({ goal = {} }) => {
               variant="outline"
               className="w-full"
               onClick={handleAddSavingsGoalDialog}
+              disabled={isGoalCompleted}
             >
               <IndianRupee /> Add Savings
             </Button>
@@ -132,6 +136,7 @@ const GoalCard = ({ goal = {} }) => {
               variant="outline"
               className="w-full gap-2.5"
               onClick={handleEditGoalDialog}
+              disabled={isGoalCompleted}
             >
               <Edit /> Edit
             </Button>
@@ -174,34 +179,21 @@ const GoalCard = ({ goal = {} }) => {
 
 function StatusBadge({ status }) {
   const variants = {
-    [GoalStatus.AHEAD]: "success",
-    [GoalStatus.BEHIND]: "destructive",
-    [GoalStatus.ON_TRACK]: "warning",
+    [GoalStatus.ACTIVE]: { label: "Active", icon: Clock },
+    [GoalStatus.COMPLETED]: { label: "Completed", icon: CheckCircle },
   };
 
-  const labels = {
-    [GoalStatus.AHEAD]: "Ahead",
-    [GoalStatus.BEHIND]: "Behind",
-    [GoalStatus.ON_TRACK]: "On Track",
-  };
-
-  const icons = {
-    [GoalStatus.AHEAD]: CheckCircle,
-    [GoalStatus.BEHIND]: AlertCircle,
-    [GoalStatus.ON_TRACK]: Clock,
-  };
-
-  const Icon = icons[status];
+  const Icon = variants[status].icon;
 
   return (
     <Badge
       shape="circle"
-      variant={variants[status]}
+      variant="success"
       appearance="outline"
-      className="mt-1"
+      className="flex-shrink-0 mt-1"
     >
       <Icon />
-      {labels[status]}
+      {variants[status].label}
     </Badge>
   );
 }

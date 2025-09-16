@@ -7,22 +7,22 @@ export const Theme = {
 };
 
 /**
- * @type {{ AHEAD: "ahead", BEHIND: "behind", ON_TRACK: "on-track" } as const}
+ * @type {{ ACTIVE: "active", COMPLETED: "completed" } as const}
  */
 export const GoalStatus = {
-  AHEAD: "ahead",
-  BEHIND: "behind",
-  ON_TRACK: "on-track",
+  ACTIVE: "active",
+  COMPLETED: "completed",
 };
 
 /**
- * @type {{ ELECTRONICS: "electronics", TRAVEL: "travel", EDUCATION: "education", FASHION: "fashion", EVENT: "event", VEHICLE: "vehicle", OTHER: "other" } as const}
+ * @type {{ ELECTRONICS: "electronics", TRAVEL: "travel", EDUCATION: "education", FASHION: "fashion", ENTERTAINMENT: "entertainment", EVENT: "event", VEHICLE: "vehicle", OTHER: "other" } as const}
  */
 export const GoalCategories = {
   ELECTRONICS: "electronics",
   TRAVEL: "travel",
   EDUCATION: "education",
   FASHION: "fashion",
+  ENTERTAINMENT: "entertainment",
   EVENT: "event",
   VEHICLE: "vehicle",
   OTHER: "other",

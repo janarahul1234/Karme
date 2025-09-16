@@ -57,7 +57,7 @@ export const createGoal = asyncHandler(async (req, res) => {
     targetDate,
     targetAmount,
     savedAmount,
-    process: calculateProgress(targetAmount, savedAmount),
+    progress: calculateProgress(targetAmount, savedAmount),
     imageUrl,
     userId: req.user._id,
   });
@@ -85,7 +85,7 @@ export const updateGoal = asyncHandler(async (req, res) => {
   goal.targetDate = targetDate ?? goal.targetDate;
   goal.targetAmount = targetAmount ?? goal.targetAmount;
   goal.savedAmount = savedAmount ?? goal.savedAmount;
-  goal.process = calculateProgress(goal.targetAmount, goal.savedAmount);
+  goal.progress = calculateProgress(goal.targetAmount, goal.savedAmount);
   goal.imageUrl = imageUrl ?? goal.imageUrl;
   await goal.save();
 
@@ -136,8 +136,8 @@ export const addTransaction = asyncHandler(async (req, res) => {
   const appliedAmount = Math.min(amount, remaining);
 
   goal.savedAmount += amount;
-  goal.process = calculateProgress(goal.targetAmount, goal.savedAmount);
-  
+  goal.progress = calculateProgress(goal.targetAmount, goal.savedAmount);
+
   if (goal.savedAmount >= goal.targetAmount) {
     goal.savedAmount = goal.targetAmount;
     goal.status = GoalStatus.COMPLETED;

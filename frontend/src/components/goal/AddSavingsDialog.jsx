@@ -26,15 +26,20 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-const addSavingsSchema = z.object({
-  amount: z.coerce.number().positive("Savings amount must be greater than 0."),
-});
+const addSavingsSchema = (remaining) =>
+  z.object({
+    amount: z.coerce
+      .number()
+      .positive("Savings amount must be greater than 0.")
+      .max(remaining, `You can only save up to ${remaining}.`),
+  });
 
 const AddSavingsDialog = ({ open, onOpenChange, goal = {}, onAddSaving }) => {
-  const { _id, name, targetAmount, savedAmount } = goal;
+  const { _id, name, targetAmount, savedAmount, progress } = goal;
+  const remaining = targetAmount - savedAmount;
 
   const form = useForm({
-    resolver: zodResolver(addSavingsSchema),
+    resolver: zodResolver(addSavingsSchema(remaining)),
     values: { amount: "" },
   });
 
@@ -46,8 +51,6 @@ const AddSavingsDialog = ({ open, onOpenChange, goal = {}, onAddSaving }) => {
     return onAddSaving({ id: _id, data, reset: form.reset });
   };
 
-  const progress = (savedAmount / targetAmount) * 100;
-  const remaining = targetAmount - savedAmount;
   const savingsAmount = form.watch("amount");
 
   return (

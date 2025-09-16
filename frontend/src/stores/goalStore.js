@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { addGoal, addSaving, editGoal, deleteGoal } from "@/apis/goal";
+import { addGoal, editGoal, deleteGoal, addGoalTransaction } from "@/apis/goal";
 
 const useGoalStore = create((set) => ({
   goals: [],
@@ -11,16 +11,6 @@ const useGoalStore = create((set) => ({
   addGoal: async (data = {}) => {
     const response = await addGoal(data);
     set((state) => ({ goals: [response.data, ...state.goals] }));
-    return response.data;
-  },
-
-  addSaving: async (id, data = {}) => {
-    const response = await addSaving(id, data);
-    set((state) => ({
-      goals: state.goals.map((goal) =>
-        goal._id === response.data._id ? response.data : goal
-      ),
-    }));
     return response.data;
   },
 
@@ -38,6 +28,16 @@ const useGoalStore = create((set) => ({
     const response = await deleteGoal(id);
     set((state) => ({
       goals: state.goals.filter((goal) => goal._id !== response.data._id),
+    }));
+    return response.data;
+  },
+
+  addGoalTransaction: async (id, data = {}) => {
+    const response = await addGoalTransaction(id, data);
+    set((state) => ({
+      goals: state.goals.map((goal) =>
+        goal._id === response.data._id ? response.data : goal
+      ),
     }));
     return response.data;
   },

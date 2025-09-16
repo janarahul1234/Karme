@@ -125,7 +125,7 @@ export const deleteTransaction = asyncHandler(async (req, res) => {
     const goal = await Goal.findById(transaction.goalId);
 
     goal.savedAmount -= transaction.amount;
-    goal.process = calculateProgress(goal.targetAmount, goal.savedAmount);
+    goal.progress = calculateProgress(goal.targetAmount, goal.savedAmount);
 
     if (goal.savedAmount < goal.targetAmount) {
       goal.status = GoalStatus.ACTIVE;

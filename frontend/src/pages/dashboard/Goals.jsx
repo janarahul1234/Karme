@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   ArrowDownUp,
   ListFilter,
@@ -7,10 +7,11 @@ import {
   Search,
 } from "lucide-react";
 
-import { getGoals } from "@/apis/goal";
-import useGoalStore from "@/stores/goalStore";
 import useToast from "@/hooks/useToast";
+import useGoalStore from "@/stores/goalStore";
+import { getGoals } from "@/apis/goal";
 
+import { capitalizeString, debounce } from "@/utils/helper";
 import {
   AvailableGoalCategories,
   GoalSortTypes,
@@ -35,13 +36,24 @@ import GoalFormDialog from "@/components/goal/GoalFormDialog";
 const Goals = () => {
   const { goals, setGoals, addGoal } = useGoalStore();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [params, setParams] = useState({
+    search: "",
+    category: "all",
+    sort: GoalSortTypes.NAME,
+  });
   const [isLoading, setIsLoading] = useState(true);
 
   const toast = useToast();
 
-  const handleAddGoalDialog = () => {
-    setIsAddDialogOpen(true);
-  };
+  const fetchGoals = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await getGoals(params);
+      setGoals(response.data);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [params, setGoals]);
 
   const handleAddGoal = async ({ data, reset }) => {
     await addGoal(data);
@@ -50,14 +62,21 @@ const Goals = () => {
     toast.success("Goal added successfully");
   };
 
+  const handleSearch = debounce((e) => {
+    setParams((prev) => ({ ...prev, search: e.target.value }));
+  }, 500);
+
+  const handleCategory = (value) => {
+    setParams((prev) => ({ ...prev, category: value }));
+  };
+
+  const handleSort = (value) => {
+    setParams((prev) => ({ ...prev, sort: value }));
+  };
+
   useEffect(() => {
-    setIsLoading(true);
-    (async () => {
-      const response = await getGoals();
-      setGoals(response.data);
-      setIsLoading(false);
-    })();
-  }, []);
+    fetchGoals();
+  }, [fetchGoals]);
 
   return (
     <>
@@ -65,7 +84,7 @@ const Goals = () => {
         title="Savings Goals"
         desc="Manage your product savings goals"
         action={
-          <Button size="lg" onClick={handleAddGoalDialog}>
+          <Button size="lg" onClick={() => setIsAddDialogOpen(true)}>
             <Plus /> Add Goal
           </Button>
         }
@@ -74,56 +93,48 @@ const Goals = () => {
       <div className="flex flex-col sm:flex-row sm:justify-between gap-2 mb-8">
         {/* Search box */}
         <div className="relative w-full sm:max-w-xs">
-          <div className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-4 peer-disabled:opacity-50">
+          <div className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 start-0 flex items-center ps-4">
             <Search size={20} aria-hidden="true" />
           </div>
           <Input
             type="text"
             placeholder="Search goals..."
             variant="lg"
-            className="peer ps-12"
+            className="ps-12"
+            onInput={handleSearch}
           />
         </div>
 
         {/* Filters */}
         <div className="flex gap-2">
-          <Select defaultValue="all">
-            <SelectTrigger
-              size="lg"
-              className="w-full sm:w-[180px] cursor-pointer"
-            >
+          <Select value={params.category} onValueChange={handleCategory}>
+            <SelectTrigger size="lg" className="w-full sm:w-[180px]">
               <div className="flex gap-3">
-                <div className="text-muted-foreground/80">
-                  <ListFilter size={20} aria-hidden="true" />
-                </div>
+                <ListFilter size={20} className="text-muted-foreground/80" />
                 <SelectValue placeholder="Select a category" />
               </div>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Category</SelectItem>
+              <SelectItem value="all">All Categories</SelectItem>
               {AvailableGoalCategories.map((value) => (
                 <SelectItem key={value} value={value}>
-                  {value}
+                  {capitalizeString(value)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <Select defaultValue={GoalSortTypes.NAME}>
-            <SelectTrigger
-              size="lg"
-              className="w-full sm:w-[180px] cursor-pointer"
-            >
+
+          <Select value={params.sort} onValueChange={handleSort}>
+            <SelectTrigger size="lg" className="w-full sm:w-[180px]">
               <div className="flex gap-3">
-                <div className="text-muted-foreground/80">
-                  <ArrowDownUp size={20} aria-hidden="true" />
-                </div>
+                <ArrowDownUp size={20} className="text-muted-foreground/80" />
                 <SelectValue placeholder="Select a sort" />
               </div>
             </SelectTrigger>
             <SelectContent>
               {AvailableGoalSortTypes.map((value) => (
                 <SelectItem key={value} value={value}>
-                  {value}
+                  {capitalizeString(value)}
                 </SelectItem>
               ))}
             </SelectContent>

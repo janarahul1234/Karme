@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod";
 
+import { capitalizeString } from "@/utils/helper";
 import { GoalCategories, AvailableGoalCategories } from "@/constants";
 
 import { Button } from "@/components/ui/button";
@@ -73,16 +74,6 @@ const goalSchema = z
       "Your current savings must be less than or equal to your goal amount.",
     path: ["savedAmount"],
   });
-
-const CategoryOptions = [
-  { label: "Electronics", value: GoalCategories.ELECTRONICS },
-  { label: "Travel", value: GoalCategories.TRAVEL },
-  { label: "Education", value: GoalCategories.EDUCATION },
-  { label: "Fashion", value: GoalCategories.FASHION },
-  { label: "Event", value: GoalCategories.EVENT },
-  { label: "Vehicle", value: GoalCategories.VEHICLE },
-  { label: "Other", value: GoalCategories.OTHER },
-];
 
 const GoalFormDialog = ({ open, onOpenChange, goal = {}, onSubmit }) => {
   const {
@@ -190,13 +181,9 @@ const GoalFormDialog = ({ open, onOpenChange, goal = {}, onSubmit }) => {
                           <SelectValue placeholder="Select category" />
                         </SelectTrigger>
                         <SelectContent>
-                          {CategoryOptions.map(({ label, value }) => (
-                            <SelectItem
-                              key={value}
-                              value={value}
-                              className="cursor-pointer"
-                            >
-                              {label}
+                          {AvailableGoalCategories.map((value) => (
+                            <SelectItem key={value} value={value}>
+                              {capitalizeString(value)}
                             </SelectItem>
                           ))}
                         </SelectContent>
