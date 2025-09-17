@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ArrowDownUp,
   Calendar,
@@ -8,12 +8,15 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-import useTransactionStore from "@/stores/transactionStore";
-import { getTransactions } from "@/apis/transaction";
-import { formatAmount } from "@/utils/helper";
-
 import useToast from "@/hooks/useToast";
-import { TransactionTypes } from "@/constants";
+import useTransactionStore from "@/stores/transactionStore";
+
+import { formatAmount, toCapitalize } from "@/utils/helper";
+
+import { getFinance } from "@/apis/finance";
+import { getTransactions } from "@/apis/transaction";
+
+import { TransactionSortTypes, AvailableTransactionTypes } from "@/constants";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,25 +33,39 @@ import SectionHeader from "@/components/partials/SectionHeader";
 import FinanceCard from "@/components/finance/FinanceCard";
 import CardsFallback from "@/components/partials/CardsFallback";
 import AddFinanceDialog from "@/components/finance/AddFinanceDialog";
-
-const TabsOptions = [
-  { label: "All", value: "all" },
-  { label: "Income", value: TransactionTypes.INCOME },
-  { label: "Expense", value: TransactionTypes.EXPENSE },
-];
+import useFinanceStore from "@/stores/financeStore";
 
 const Finances = () => {
+  const toast = useToast();
+
+  const { finance, setFinance } = useFinanceStore();
   const { transactions, setTransactions, addTransaction } =
     useTransactionStore();
   const [addFinanceOpen, setAddFinanceOpen] = useState(false);
-  const [currentTab, setCurrentTab] = useState("all");
+  const [params, setParams] = useState({
+    type: "all",
+    sort: TransactionSortTypes.DATE,
+  });
   const [isLoading, setIsLoading] = useState(true);
 
-  const toast = useToast();
+  const fetchFinance = useCallback(async () => {
+    try {
+      const response = await getFinance();
+      setFinance(response.data);
+    } finally {
+      // loading false
+    }
+  }, [setFinance]);
 
-  const handleTabsChange = (value) => {
-    return () => setCurrentTab(value);
-  };
+  const fetchTransaction = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await getTransactions(params);
+      setTransactions(response.data);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [params, setTransactions]);
 
   const handleAddFinanceDialog = () => {
     setAddFinanceOpen(true);
@@ -61,14 +78,18 @@ const Finances = () => {
     toast.success("Transaction added successfully");
   };
 
+  const handleTabs = (value) => {
+    return () => setParams((prev) => ({ ...prev, type: value }));
+  };
+
+  const handleSort = (value) => {
+    setParams((prev) => ({ ...prev, sort: value }));
+  };
+
   useEffect(() => {
-    setIsLoading(true);
-    (async () => {
-      const response = await getTransactions();
-      setTransactions(response.data);
-      setIsLoading(false);
-    })();
-  }, []);
+    fetchFinance();
+    fetchTransaction();
+  }, [fetchFinance, fetchTransaction]);
 
   return (
     <>
@@ -91,7 +112,7 @@ const Finances = () => {
             <div>
               <p className="text-muted-foreground text-sm">Total Income</p>
               <p className="text-green-500 text-2xl font-semibold">
-                {formatAmount(123)}
+                {formatAmount(finance.totalIncome ?? 0)}
               </p>
             </div>
           </CardContent>
@@ -107,7 +128,7 @@ const Finances = () => {
             <div>
               <p className="text-muted-foreground text-sm">Total Expense</p>
               <p className="text-destructive text-2xl font-semibold">
-                {formatAmount(456)}
+                {formatAmount(finance.totalExpenses ?? 0)}
               </p>
             </div>
           </CardContent>
@@ -119,33 +140,39 @@ const Finances = () => {
             <Calendar size={32} className="flex-shrink-0 text-blue-500" />
             <div>
               <p className="text-muted-foreground text-sm">Net Income</p>
-              <p className="text-2xl font-semibold">{formatAmount(789)}</p>
+              <p className="text-2xl font-semibold">
+                {formatAmount(finance.netIncome ?? 0)}
+              </p>
             </div>
           </CardContent>
         </Card>
       </div>
 
       <div className="flex flex-col sm:flex-row sm:justify-between gap-4 mb-4">
-        <Tabs defaultValue="all" className="w-full sm:w-[350px]">
+        <Tabs defaultValue={params.type} className="w-full sm:w-[350px]">
           <TabsList className="w-full grid grid-cols-3">
-            {TabsOptions.map(({ label, value }) => (
+            <TabsTrigger
+              value="all"
+              className="data-[state=active]:text-primary"
+              onClick={handleTabs("all")}
+            >
+              All
+            </TabsTrigger>
+            {AvailableTransactionTypes.map((value) => (
               <TabsTrigger
                 key={value}
                 value={value}
                 className="data-[state=active]:text-primary"
-                onClick={handleTabsChange(value)}
+                onClick={handleTabs(value)}
               >
-                {label}
+                {toCapitalize(value)}
               </TabsTrigger>
             ))}
           </TabsList>
         </Tabs>
 
-        <Select defaultValue="date">
-          <SelectTrigger
-            size="lg"
-            className="w-full sm:w-[160px] cursor-pointer"
-          >
+        <Select defaultValue={params.sort} onValueChange={handleSort}>
+          <SelectTrigger size="lg" className="w-full sm:w-[160px]">
             <div className="flex gap-3">
               <div className="text-muted-foreground/80">
                 <ArrowDownUp size={20} aria-hidden="true" />

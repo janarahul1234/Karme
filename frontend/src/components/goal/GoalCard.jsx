@@ -1,17 +1,10 @@
 import { useState } from "react";
-import {
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Edit,
-  IndianRupee,
-  Trash2,
-} from "lucide-react";
+import { CheckCircle, Clock, Edit, IndianRupee, Trash2 } from "lucide-react";
 
 import useToast from "@/hooks/useToast";
 import useGoalStore from "@/stores/goalStore";
-import { GoalStatus } from "@/constants";
 import { formatAmount } from "@/utils/helper";
+import { GoalStatus } from "@/constants";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

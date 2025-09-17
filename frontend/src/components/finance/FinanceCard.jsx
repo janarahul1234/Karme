@@ -2,24 +2,35 @@ import { useState } from "react";
 import { Trash2, TrendingDown, TrendingUp } from "lucide-react";
 import { format as formatDate } from "date-fns";
 
+import useToast from "@/hooks/useToast";
 import { cn } from "@/lib/utils";
-import { formatAmount } from "@/utils/helper";
-
+import { toCapitalize, formatAmount } from "@/utils/helper";
 import { TransactionTypes } from "@/constants";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import DeleteFinanceDialog from "@/components/finance/DeleteFinanceDialog";
+import useTransactionStore from "@/stores/transactionStore";
 
 const FinanceCard = ({ transaction = {} }) => {
-  const { type, title, category, amount, date } = transaction;
+  const { type, category, amount, date, description } = transaction;
+  const { deleteTransaction } = useTransactionStore();
   const [deleteFinanceOpen, setDeleteFinanceOpen] = useState(false);
+
+  const toast = useToast();
 
   const handleDeleteFinance = () => {
     setDeleteFinanceOpen(true);
   };
 
+  const handleDelete = async (id) => {
+    await deleteTransaction(id);
+    setDeleteFinanceOpen(false);
+    toast.success("Transaction deleted successfully");
+  };
+
   const isIncome = type === TransactionTypes.INCOME;
+  const isSaving = type === "saving";
 
   return (
     <>
@@ -37,9 +48,11 @@ const FinanceCard = ({ transaction = {} }) => {
           </div>
           <div className="grow flex items-center justify-between">
             <div>
-              <p className="font-semibold">{title}</p>
-              <p className="text-muted-foreground text-sm capitalize">
-                {category}
+              <p className="font-semibold">
+                {description ? description : toCapitalize(category)}
+              </p>
+              <p className="text-muted-foreground text-sm">
+                {toCapitalize(category)}
               </p>
             </div>
             <div className="text-right">
@@ -62,6 +75,7 @@ const FinanceCard = ({ transaction = {} }) => {
             variant="ghost"
             className="text-muted-foreground hover:text-destructive p-5"
             onClick={handleDeleteFinance}
+            disabled={isSaving}
           >
             <Trash2 className="size-5 opacity-100" />
           </Button>
@@ -72,6 +86,8 @@ const FinanceCard = ({ transaction = {} }) => {
       <DeleteFinanceDialog
         open={deleteFinanceOpen}
         onOpenChange={setDeleteFinanceOpen}
+        transaction={transaction}
+        onDelete={handleDelete}
       />
     </>
   );

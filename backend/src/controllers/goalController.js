@@ -146,11 +146,11 @@ export const addTransaction = asyncHandler(async (req, res) => {
   await goal.save();
 
   await Transaction.create({
-    title: `Goal: ${goal.name}`,
     category: goal.category,
     type: TransactionTypes.SAVING,
     amount: appliedAmount,
     goalId: id,
+    description: `Goal: ${goal.name}`,
     userId: req.user._id,
   });
 

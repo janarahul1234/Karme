@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod";
 
-import { capitalizeString } from "@/utils/helper";
+import { toCapitalize } from "@/utils/helper";
 import { GoalCategories, AvailableGoalCategories } from "@/constants";
 
 import { Button } from "@/components/ui/button";
@@ -183,7 +183,7 @@ const GoalFormDialog = ({ open, onOpenChange, goal = {}, onSubmit }) => {
                         <SelectContent>
                           {AvailableGoalCategories.map((value) => (
                             <SelectItem key={value} value={value}>
-                              {capitalizeString(value)}
+                              {toCapitalize(value)}
                             </SelectItem>
                           ))}
                         </SelectContent>

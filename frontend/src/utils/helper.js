@@ -16,9 +16,9 @@ export function formatAmountDetailed(amount) {
   }).format(amount);
 }
 
-export function capitalizeString(str = "") {
+export function toCapitalize(str = "") {
   const cleaned = str.split("-").join(" ");
-  return `${cleaned.charAt(0).toUpperCase()}${cleaned.slice(1).toLowerCase()}`;
+  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1).toLowerCase();
 }
 
 export function debounce(fn, delay = 300) {

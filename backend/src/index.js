@@ -8,6 +8,7 @@ import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import goalRoutes from "./routes/goalRoutes.js";
 import transactionRoutes from "./routes/transactionRoutes.js";
+import financeRoutes from "./routes/financeRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -27,6 +28,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/goals", goalRoutes);
 app.use("/api/transactions", transactionRoutes);
+app.use("/api/finances", financeRoutes);
 
 // Global error middleware
 app.use(errorHandler);

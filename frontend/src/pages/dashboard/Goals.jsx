@@ -11,7 +11,7 @@ import useToast from "@/hooks/useToast";
 import useGoalStore from "@/stores/goalStore";
 import { getGoals } from "@/apis/goal";
 
-import { capitalizeString, debounce } from "@/utils/helper";
+import { toCapitalize, debounce } from "@/utils/helper";
 import {
   AvailableGoalCategories,
   GoalSortTypes,
@@ -118,7 +118,7 @@ const Goals = () => {
               <SelectItem value="all">All Categories</SelectItem>
               {AvailableGoalCategories.map((value) => (
                 <SelectItem key={value} value={value}>
-                  {capitalizeString(value)}
+                  {toCapitalize(value)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -134,7 +134,7 @@ const Goals = () => {
             <SelectContent>
               {AvailableGoalSortTypes.map((value) => (
                 <SelectItem key={value} value={value}>
-                  {capitalizeString(value)}
+                  {toCapitalize(value)}
                 </SelectItem>
               ))}
             </SelectContent>

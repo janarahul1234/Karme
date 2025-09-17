@@ -1,9 +1,10 @@
 import { CalendarIcon, X } from "lucide-react";
-import { formatDate } from "date-fns";
+import { format } from "date-fns";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod";
 
+import { toCapitalize } from "@/utils/helper";
 import {
   TransactionTypes,
   AvailableTransactionTypes,
@@ -49,21 +50,24 @@ import { Calendar } from "@/components/ui/calendar";
 const transactionSchema = z
   .object({
     type: z.enum(AvailableTransactionTypes, {
-      errorMap: () => ({
-        message: "Pick a valid transaction type.",
-      }),
+      errorMap: () => ({ message: "Pick a valid transaction type." }),
     }),
-    title: z.string().nonempty("Please provide a transaction title."),
     amount: z.coerce
       .number()
       .positive("Transaction amount must be greater than 0."),
     category: z.string().nonempty("Category is required."),
     date: z
-      .string()
-      .nonempty("Please choose a transaction date.")
-      .refine((val) => new Date(val) <= new Date(), {
+      .date({
+        required_error: "Please choose a transaction date.",
+        invalid_type_error: "Invalid date.",
+      })
+      .refine((val) => val <= new Date(), {
         message: "The transaction date cannot be in the future.",
       }),
+    description: z
+      .string()
+      .min(3, "Transaction description must be at least 3 characters")
+      .optional(),
   })
   .refine(
     (data) => {
@@ -84,31 +88,30 @@ const transactionSchema = z
 const AddFinanceDialog = ({ open, onOpenChange, onAddTransaction }) => {
   const form = useForm({
     resolver: zodResolver(transactionSchema),
-    values: {
+    defaultValues: {
       type: TransactionTypes.EXPENSE,
-      title: "",
       amount: "",
       category: "",
-      date: "",
+      date: new Date(),
     },
   });
 
-  const handelTypesChange = (value) => {
-    return () => {
-      form.setValue("type", value, {
-        shouldValidate: true,
-      });
-    };
+  const onSubmit = (data) => {
+    onAddTransaction({
+      data: {
+        ...data,
+        date: data.date.toISOString(),
+      },
+      reset: form.reset,
+    });
   };
 
-  const onSubmit = (data) => {
-    return onAddTransaction({ data, reset: form.reset });
-  };
+  const transactionType = form.watch("type");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md p-0 flex flex-col gap-0 [&>button:last-child]:top-3.5 overflow-y-visible">
-        <DialogHeader className="contents text-left space-y-0">
+        <DialogHeader className="contents text-left">
           <DialogTitle className="text-base px-6 py-4 border-b">
             Add Transaction
           </DialogTitle>
@@ -117,7 +120,6 @@ const AddFinanceDialog = ({ open, onOpenChange, onAddTransaction }) => {
 
         {/* Dialog content */}
         <div className="px-6 py-4 overflow-y-auto">
-          {/* Form */}
           <Form {...form}>
             <form
               id="transaction-form"
@@ -131,48 +133,26 @@ const AddFinanceDialog = ({ open, onOpenChange, onAddTransaction }) => {
                 render={({ field }) => (
                   <div className="grid gap-2">
                     <Label>Type</Label>
-                    <Tabs defaultValue={field.value}>
+                    <Tabs value={field.value} onValueChange={field.onChange}>
                       <TabsList
                         variant="button"
                         className="w-full grid grid-cols-2"
                       >
                         <TabsTrigger
-                          value="income"
+                          value={TransactionTypes.INCOME}
                           className="bg-muted hover:bg-border/80 data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
-                          onClick={handelTypesChange(TransactionTypes.INCOME)}
                         >
                           Income
                         </TabsTrigger>
                         <TabsTrigger
-                          value="expense"
+                          value={TransactionTypes.EXPENSE}
                           className="bg-muted hover:bg-border/80 data-[state=active]:bg-red-500/10 data-[state=active]:text-red-500"
-                          onClick={handelTypesChange(TransactionTypes.EXPENSE)}
                         >
                           Expense
                         </TabsTrigger>
                       </TabsList>
                     </Tabs>
                   </div>
-                )}
-              />
-
-              {/* Title */}
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem className="gap-2">
-                    <FormLabel>Title</FormLabel>
-                    <FormControl>
-                      <Input
-                        variant="lg"
-                        type="text"
-                        placeholder="Enter your title"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
                 )}
               />
 
@@ -206,23 +186,23 @@ const AddFinanceDialog = ({ open, onOpenChange, onAddTransaction }) => {
                     <FormLabel>Category</FormLabel>
                     <FormControl>
                       <Select
-                        defaultValue={field.value}
+                        value={field.value}
                         onValueChange={field.onChange}
                       >
                         <SelectTrigger size="lg" className="cursor-pointer">
                           <SelectValue placeholder="Select a category" />
                         </SelectTrigger>
                         <SelectContent>
-                          {form.watch("type") === TransactionTypes.INCOME &&
+                          {transactionType === TransactionTypes.INCOME &&
                             AvailableIncomeCaregories.map((value) => (
                               <SelectItem key={value} value={value}>
-                                {value}
+                                {toCapitalize(value)}
                               </SelectItem>
                             ))}
-                          {form.watch("type") === TransactionTypes.EXPENSE &&
+                          {transactionType === TransactionTypes.EXPENSE &&
                             AvailableExpenseCategories.map((value) => (
                               <SelectItem key={value} value={value}>
-                                {value}
+                                {toCapitalize(value)}
                               </SelectItem>
                             ))}
                         </SelectContent>
@@ -249,12 +229,11 @@ const AddFinanceDialog = ({ open, onOpenChange, onAddTransaction }) => {
                               variant="outline"
                               mode="input"
                               type="button"
-                              placeholder={!field.value}
                               className="w-full gap-3 shadow-xs shadow-black/5"
                             >
                               <CalendarIcon className="size-5" />
                               {field.value ? (
-                                formatDate(new Date(field.value), "d MMM, yyyy")
+                                format(field.value, "d MMM, yyyy")
                               ) : (
                                 <span>Pick a date</span>
                               )}
@@ -267,7 +246,7 @@ const AddFinanceDialog = ({ open, onOpenChange, onAddTransaction }) => {
                                 className="absolute top-1/2 -end-0 -translate-y-1/2"
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  form.setValue("date", "", {
+                                  form.setValue("date", null, {
                                     shouldValidate: true,
                                   });
                                 }}
@@ -280,11 +259,9 @@ const AddFinanceDialog = ({ open, onOpenChange, onAddTransaction }) => {
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
-                            selected={
-                              field.value ? new Date(field.value) : undefined
-                            }
+                            selected={field.value}
                             onSelect={(date) =>
-                              form.setValue("date", date?.toISOString() || "", {
+                              form.setValue("date", date || null, {
                                 shouldValidate: true,
                               })
                             }
@@ -292,6 +269,26 @@ const AddFinanceDialog = ({ open, onOpenChange, onAddTransaction }) => {
                           />
                         </PopoverContent>
                       </Popover>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Description */}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem className="gap-2">
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Input
+                        variant="lg"
+                        type="text"
+                        placeholder="Enter your description"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

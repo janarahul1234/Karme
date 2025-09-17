@@ -9,6 +9,7 @@ const Apis = {
   },
   GOAL: "/goals",
   TRANSACTION: "/transactions",
+  FINANCE: "/finances",
 };
 
 Object.freeze(Apis);
