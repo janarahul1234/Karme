@@ -8,12 +8,12 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-import useToast from "@/hooks/useToast";
 import useTransactionStore from "@/stores/transactionStore";
+import useToast from "@/hooks/useToast";
 
 import { formatAmount, toCapitalize } from "@/utils/helper";
 
-import { getFinance } from "@/apis/finance";
+import { getFinances } from "@/apis/finances";
 import { getTransactions } from "@/apis/transaction";
 
 import { TransactionSortTypes, AvailableTransactionTypes } from "@/constants";
@@ -33,12 +33,10 @@ import SectionHeader from "@/components/partials/SectionHeader";
 import FinanceCard from "@/components/finance/FinanceCard";
 import CardsFallback from "@/components/partials/CardsFallback";
 import AddFinanceDialog from "@/components/finance/AddFinanceDialog";
-import useFinanceStore from "@/stores/financeStore";
+import useFinanceStore from "@/stores/financesStore";
 
 const Finances = () => {
-  const toast = useToast();
-
-  const { finance, setFinance } = useFinanceStore();
+  const { finances, setFinances } = useFinanceStore();
   const { transactions, setTransactions, addTransaction } =
     useTransactionStore();
   const [addFinanceOpen, setAddFinanceOpen] = useState(false);
@@ -48,16 +46,14 @@ const Finances = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchFinance = useCallback(async () => {
-    try {
-      const response = await getFinance();
-      setFinance(response.data);
-    } finally {
-      // loading false
-    }
-  }, [setFinance]);
+  const toast = useToast();
 
-  const fetchTransaction = useCallback(async () => {
+  const fetchFinances = useCallback(async () => {
+    const response = await getFinances();
+    setFinances(response.data);
+  }, [setFinances]);
+
+  const fetchTransactions = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await getTransactions(params);
@@ -87,9 +83,9 @@ const Finances = () => {
   };
 
   useEffect(() => {
-    fetchFinance();
-    fetchTransaction();
-  }, [fetchFinance, fetchTransaction]);
+    fetchFinances();
+    fetchTransactions();
+  }, [fetchFinances, fetchTransactions]);
 
   return (
     <>
@@ -112,7 +108,7 @@ const Finances = () => {
             <div>
               <p className="text-muted-foreground text-sm">Total Income</p>
               <p className="text-green-500 text-2xl font-semibold">
-                {formatAmount(finance.totalIncome ?? 0)}
+                {formatAmount(finances.totalIncome ?? 0)}
               </p>
             </div>
           </CardContent>
@@ -128,7 +124,7 @@ const Finances = () => {
             <div>
               <p className="text-muted-foreground text-sm">Total Expense</p>
               <p className="text-destructive text-2xl font-semibold">
-                {formatAmount(finance.totalExpenses ?? 0)}
+                {formatAmount(finances.totalExpenses ?? 0)}
               </p>
             </div>
           </CardContent>
@@ -141,7 +137,7 @@ const Finances = () => {
             <div>
               <p className="text-muted-foreground text-sm">Net Income</p>
               <p className="text-2xl font-semibold">
-                {formatAmount(finance.netIncome ?? 0)}
+                {formatAmount(finances.netIncome ?? 0)}
               </p>
             </div>
           </CardContent>

@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { LogOutIcon, UserRound } from "lucide-react";
 
+import useAuthStore from "@/stores/authStore";
 import useToast from "@/hooks/useToast";
-import { useUser } from "@/context/UserContext";
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,15 +16,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const UserMenu = () => {
-  const { user, logout } = useUser();
+  const { user, logout } = useAuthStore();
   const { avatar, fullName, email } = user;
 
   const toast = useToast();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    toast.success("Logout successfully");
+    localStorage.removeItem("token");
     logout();
+    toast.success("Logout successfully");
     navigate("/login");
   };
 
@@ -53,10 +54,10 @@ const UserMenu = () => {
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer">
+        {/* <DropdownMenuItem className="cursor-pointer">
           <UserRound size={16} className="opacity-60" aria-hidden="true" />
           <span>Profile</span>
-        </DropdownMenuItem>
+        </DropdownMenuItem> */}
         <DropdownMenuItem
           variant="destructive"
           className="cursor-pointer"

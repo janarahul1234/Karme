@@ -1,9 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import {
   ArrowRight,
   EyeIcon,
@@ -12,9 +9,13 @@ import {
   LoaderCircle,
   Mail,
 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
+import useAuthStore from "@/stores/authStore";
 import useToast from "@/hooks/useToast";
-import { useUser } from "@/context/UserContext";
+
 import { loginUser, googleAuth } from "@/apis/auth";
 
 import GoogleIcon from "@/assets/images/google-icon-logo.svg";
@@ -38,38 +39,44 @@ const loginSchema = z.object({
 });
 
 const Login = () => {
+  const { login } = useAuthStore();
   const [isVisible, setIsVisible] = useState(false);
-  const { login } = useUser();
+
+  const toast = useToast();
+  const navigate = useNavigate();
 
   const form = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
 
-  const toast = useToast();
-  const navigate = useNavigate();
-
   const toggleVisibility = () => {
     setIsVisible(!isVisible);
   };
 
-  const onSubmit = async (formData) => {
+  const onSubmit = async (data) => {
     try {
-      const { data } = await loginUser(formData);
-      const { user, token } = data;
+      const response = await loginUser(data);
+      const { user, token } = response.data;
 
       if (token) {
+        localStorage.setItem("token", token);
+        login(user);
         toast.success("Login successfully");
-        login(user, token);
         navigate("/dashboard");
       }
     } catch (error) {
       if (error.response.data) {
         form.setError("email", {
           type: "server",
-          message: error.response.data.message,
+          message: "Invalid email address.",
+        });
+        form.setError("password", {
+          type: "server",
+          message: "Invalid password.",
         });
       } else {
+        toast.error("Login Failed, Please try again later");
         console.error("User login error:", error);
       }
     }
@@ -199,8 +206,9 @@ const GoogleLogin = ({ toast, login, navigate }) => {
       const { user, token } = data;
 
       if (token) {
+        localStorage.setItem("token", token);
+        login(user);
         toast.success("Login successfully");
-        login(user, token);
         navigate("/dashboard");
       }
     } catch (error) {

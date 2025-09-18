@@ -8,6 +8,7 @@ import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import goalRoutes from "./routes/goalRoutes.js";
 import transactionRoutes from "./routes/transactionRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
 import financeRoutes from "./routes/financeRoutes.js";
 
 const app = express();
@@ -28,6 +29,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/goals", goalRoutes);
 app.use("/api/transactions", transactionRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/finances", financeRoutes);
 
 // Global error middleware

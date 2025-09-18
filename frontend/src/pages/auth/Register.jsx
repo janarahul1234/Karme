@@ -1,8 +1,5 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import {
   ArrowRight,
   EyeIcon,
@@ -13,10 +10,14 @@ import {
   Upload,
   UserRound,
 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
+import useAuthStore from "@/stores/authStore";
 import useToast from "@/hooks/useToast";
-import { useUser } from "@/context/UserContext";
-import { registerUser, uploadAvatar } from "@/apis/auth";
+
+import { uploadAvatar, registerUser } from "@/apis/auth";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -40,17 +41,18 @@ const registerSchema = z.object({
 });
 
 const Register = () => {
+  const { login } = useAuthStore();
+  const [profileImage, setProfileImage] = useState(null);
+  const [preview, setPreview] = useState("");
   const [isVisible, setIsVisible] = useState(false);
-  const [profileImage, setProfileImage] = useState({ file: null, preview: "" });
-  const { login } = useUser();
+
+  const toast = useToast();
+  const navigate = useNavigate();
 
   const form = useForm({
     resolver: zodResolver(registerSchema),
     defaultValues: { fullName: "", email: "", password: "" },
   });
-
-  const toast = useToast();
-  const navigate = useNavigate();
 
   const toggleVisibility = () => {
     setIsVisible(!isVisible);
@@ -61,8 +63,8 @@ const Register = () => {
     if (file) {
       const reader = new FileReader();
       reader.onload = (event) => {
-        const preview = event.target?.result;
-        setProfileImage({ file, preview });
+        setPreview(event.target?.result);
+        setProfileImage(file);
       };
       reader.readAsDataURL(file);
     }
@@ -73,8 +75,8 @@ const Register = () => {
 
     try {
       if (profileImage.file) {
-        const avaterRes = await uploadAvatar(profileImage.file);
-        avatar = avaterRes.data;
+        const res = await uploadAvatar(profileImage.file);
+        avatar = res.data;
       }
 
       const response = await registerUser({
@@ -84,8 +86,9 @@ const Register = () => {
       const { user, token } = response.data;
 
       if (token) {
+        localStorage.setItem("token", token);
+        login(user);
         toast.success("Register successfully");
-        login(user, token);
         navigate("/dashboard");
       }
     } catch (error) {
@@ -95,6 +98,7 @@ const Register = () => {
           message: error.response.data.message,
         });
       } else {
+        toast.error("Register Failed, Please try again later");
         console.error("User register error:", error);
       }
     }
@@ -115,7 +119,7 @@ const Register = () => {
             <div className="relative inline-block">
               <Avatar className="block size-22 mx-auto">
                 <AvatarImage
-                  src={profileImage.preview}
+                  src={preview}
                   alt="Profile"
                   className="size-full object-cover"
                 />

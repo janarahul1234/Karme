@@ -6,10 +6,12 @@ const Apis = {
     REGISTER: "/auth/register",
     LOGIN: "/auth/login",
     GOOGLE: "/auth/google",
+    ME: "/auth/me",
   },
   GOAL: "/goals",
   TRANSACTION: "/transactions",
-  FINANCE: "/finances",
+  DASHBOARD: "/dashboard",
+  FINANCES: "/finances",
 };
 
 Object.freeze(Apis);

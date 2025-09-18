@@ -9,7 +9,6 @@ import { Switch } from "@/components/ui/switch";
 
 const ThemeToggle = () => {
   const { theme, toggleTheme } = useTheme();
-
   const id = useId();
 
   return (

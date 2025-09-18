@@ -1,7 +1,6 @@
 import apiWrapper from "@/utils/apiWrapper";
 import apiClient from "@/utils/apiClient";
 import Apis from "@/utils/apiEndpoints";
-import { TransactionTypes } from "@/constants";
 
 export const getTransactions = apiWrapper(({ type, sort } = {}) => {
   const params = new URLSearchParams({ sort });

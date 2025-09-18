@@ -7,7 +7,6 @@ import {
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 import ThemeProvider from "@/context/themeContext";
-import UserProvider from "@/context/userContext";
 
 import { Toaster } from "@/components/ui/sonner";
 import PublicRoutes from "@/components/PublicRoutes";
@@ -42,31 +41,27 @@ const Index = () => {
 
 const App = () => {
   return (
-    <>
+    <ThemeProvider>
       <Toaster position="top-center" />
-      <ThemeProvider>
-        <UserProvider>
-          <Router>
-            <Routes>
-              <Route element={<PublicRoutes />}>
-                <Route element={<AuthLayout />}>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route path="/login" element={<GoogleAuthWrapper />} />
-                </Route>
-              </Route>
-              <Route element={<ProtectedRoutes />}>
-                <Route element={<AppLayout />}>
-                  <Route path="/dashboard" element={<Home />} />
-                  <Route path="/goals" element={<Goals />} />
-                  <Route path="/finances" element={<Finances />} />
-                </Route>
-              </Route>
-            </Routes>
-          </Router>
-        </UserProvider>
-      </ThemeProvider>
-    </>
+      <Router>
+        <Routes>
+          <Route element={<PublicRoutes />}>
+            <Route element={<AuthLayout />}>
+              <Route path="/" element={<Index />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/login" element={<GoogleAuthWrapper />} />
+            </Route>
+          </Route>
+          <Route element={<ProtectedRoutes />}>
+            <Route element={<AppLayout />}>
+              <Route path="/dashboard" element={<Home />} />
+              <Route path="/goals" element={<Goals />} />
+              <Route path="/finances" element={<Finances />} />
+            </Route>
+          </Route>
+        </Routes>
+      </Router>
+    </ThemeProvider>
   );
 };
 

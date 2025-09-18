@@ -7,11 +7,13 @@ import {
   Search,
 } from "lucide-react";
 
-import useToast from "@/hooks/useToast";
 import useGoalStore from "@/stores/goalStore";
+import useToast from "@/hooks/useToast";
+
 import { getGoals } from "@/apis/goal";
 
 import { toCapitalize, debounce } from "@/utils/helper";
+
 import {
   AvailableGoalCategories,
   GoalSortTypes,
